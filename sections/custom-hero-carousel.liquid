@@ -1,0 +1,613 @@
+{%- comment -%} Bagatta — Hero Carousel Master Premium (V8 - Connected to Global Theme Typography) {%- endcomment -%}
+
+{%- style -%}
+  /* Conexión directa y en tiempo real con la Tipografía Global de la Tienda */
+  #bagatta-carousel-{{ section.id }} .bagatta-carousel__heading {
+    font-size: {{ section.settings.heading_size_mobile }}px;
+  }
+
+  @media screen and (min-width: 768px) {
+    #bagatta-carousel-{{ section.id }} .bagatta-carousel__heading {
+      font-size: {{ section.settings.heading_size_desktop }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="bagatta-carousel" id="bagatta-carousel-{{ section.id }}">
+  {%- if section.blocks.size > 0 -%}
+    <div class="bagatta-carousel__track" id="bagatta-track-{{ section.id }}">
+      {%- for block in section.blocks -%}
+        <div class="bagatta-carousel__slide slide-{{ block.id }}" {{ block.shopify_attributes }}>
+          
+          {%- comment -%} MULTIMEDIA (Desktop & Mobile) {%- endcomment -%}
+          <div class="bagatta-carousel__image-wrap">
+            {%- liquid
+              assign has_mobile = false
+              if block.settings.video_mobile != blank or block.settings.image_mobile != blank
+                assign has_mobile = true
+              endif
+            -%}
+
+            {%- capture desktop_classes -%}bagatta-carousel__media {% if has_mobile %}bagatta-desktop-only{% endif %}{%- endcapture -%}
+            
+            {%- if block.settings.video != blank -%}
+              {{ block.settings.video | video_tag: autoplay: true, loop: true, muted: true, controls: false, class: desktop_classes }}
+            {%- elsif block.settings.image != blank -%}
+              {{- block.settings.image | image_url: width: 2500 | image_tag: loading: 'eager', widths: '1000, 1500, 2000, 2500', class: desktop_classes -}}
+            {%- else -%}
+              {{ 'lifestyle-1' | placeholder_svg_tag: desktop_classes }}
+            {%- endif -%}
+
+            {%- if has_mobile -%}
+              {%- assign mobile_classes = 'bagatta-carousel__media bagatta-mobile-only' -%}
+              {%- if block.settings.video_mobile != blank -%}
+                {{ block.settings.video_mobile | video_tag: autoplay: true, loop: true, muted: true, controls: false, class: mobile_classes }}
+              {%- elsif block.settings.image_mobile != blank -%}
+                {{- block.settings.image_mobile | image_url: width: 1000 | image_tag: loading: 'eager', widths: '600, 800, 1000', class: mobile_classes -}}
+              {%- endif -%}
+            {%- endif -%}
+          </div>
+
+          <div class="bagatta-carousel__overlay" style="background: {{ section.settings.overlay_color }}; opacity: {{ section.settings.overlay_opacity }};"></div>
+
+          {%- liquid
+            assign dh = block.settings.content_h_align
+            assign dv = block.settings.content_v_align
+            case dh
+              when 'left'
+                assign d_justify = 'flex-start'
+                assign d_text = 'left'
+              when 'center'
+                assign d_justify = 'center'
+                assign d_text = 'center'
+              when 'right'
+                assign d_justify = 'flex-end'
+                assign d_text = 'right'
+              else
+                assign d_justify = 'flex-start'
+                assign d_text = 'left'
+            endcase
+            case dv
+              when 'top'
+                assign d_align = 'flex-start'
+                assign d_pt = block.settings.content_v_offset
+                assign d_pb = 0
+              when 'bottom'
+                assign d_align = 'flex-end'
+                assign d_pt = 0
+                assign d_pb = block.settings.content_v_offset
+              else
+                assign d_align = 'center'
+                assign d_pt = 0
+                assign d_pb = 0
+            endcase
+            assign mh = block.settings.content_h_align_mobile
+            assign mv = block.settings.content_v_align_mobile
+            case mh
+              when 'left'
+                assign m_justify = 'flex-start'
+                assign m_text = 'left'
+              when 'center'
+                assign m_justify = 'center'
+                assign m_text = 'center'
+              when 'right'
+                assign m_justify = 'flex-end'
+                assign m_text = 'right'
+              else
+                assign m_justify = 'center'
+                assign m_text = 'center'
+            endcase
+            case mv
+              when 'top'
+                assign m_align = 'flex-start'
+                assign m_pt = block.settings.content_v_offset_mobile
+                assign m_pb = 0
+              when 'bottom'
+                assign m_align = 'flex-end'
+                assign m_pt = 0
+                assign m_pb = block.settings.content_v_offset_mobile
+              else
+                assign m_align = 'center'
+                assign m_pt = 0
+                assign m_pb = 0
+            endcase
+          -%}
+
+          <style>
+            .slide-{{ block.id }} .bagatta-carousel__content {
+              --justify: {{ m_justify }};
+              --align:   {{ m_align }};
+              --text-align: {{ m_text }};
+              --pt: {{ m_pt }}px;
+              --pb: {{ m_pb }}px;
+            }
+            @media screen and (min-width: 768px) {
+              .slide-{{ block.id }} .bagatta-carousel__content {
+                --justify: {{ d_justify }};
+                --align:   {{ d_align }};
+                --text-align: {{ d_text }};
+                --pt: {{ d_pt }}px;
+                --pb: {{ d_pb }}px;
+              }
+            }
+          </style>
+
+          <div class="bagatta-carousel__content">
+            <div class="bagatta-content-inner">
+              {%- if block.settings.overline != blank -%}
+                <p class="bagatta-reveal bagatta-carousel__overline" style="color: {{ block.settings.color_overline }};">
+                  {{ block.settings.overline }}
+                </p>
+              {%- endif -%}
+              
+              {%- if block.settings.heading != blank -%}
+                <h2 class="bagatta-reveal bagatta-carousel__heading" style="color: {{ block.settings.color_heading }};">
+                  {{ block.settings.heading }}
+                </h2>
+              {%- endif -%}
+              
+              {%- if block.settings.subtext != blank -%}
+                <p class="bagatta-reveal bagatta-carousel__subtext" style="color: {{ block.settings.color_subtext }};">
+                  {{ block.settings.subtext }}
+                </p>
+              {%- endif -%}
+              
+              {%- if block.settings.button_label != blank and block.settings.button_link != blank -%}
+                <div class="bagatta-reveal bagatta-reveal--btn">
+                  <a href="{{ block.settings.button_link }}" class="bagatta-carousel__btn btn-{{ block.id }}">
+                    <span>{{ block.settings.button_label }}</span>
+                  </a>
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+
+          <style>
+            .btn-{{ block.id }} {
+              border-color: {{ block.settings.color_btn_border }};
+              color: {{ block.settings.color_btn_text }};
+            }
+            .btn-{{ block.id }}:hover {
+              background-color: {{ block.settings.color_btn_hover_bg | color_modify: 'alpha', 0.30 }} !important;
+              color: {{ block.settings.color_btn_hover_text }} !important;
+              border-color: {{ block.settings.color_btn_hover_bg }} !important;
+            }
+          </style>
+
+        </div>
+      {%- endfor -%}
+    </div>
+
+    {%- comment -%} UI: FLECHAS DE NAVEGACIÓN {%- endcomment -%}
+    <button class="bagatta-carousel__arrow bagatta-carousel__arrow--prev" id="bagatta-prev-{{ section.id }}" aria-label="Slide anterior">
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+    <button class="bagatta-carousel__arrow bagatta-carousel__arrow--next" id="bagatta-next-{{ section.id }}" aria-label="Siguiente slide">
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </button>
+
+    {%- comment -%} UI: DOTS INDICADORES DINÁMICOS {%- endcomment -%}
+    <div class="bagatta-carousel__dots" 
+         id="bagatta-dots-{{ section.id }}" 
+         style="bottom: {{ section.settings.dots_margin_bottom }}px;">
+      {%- for block in section.blocks -%}
+        <div class="bagatta-carousel__dot {% if forloop.first %}bagatta-carousel__dot--active{% endif %}" 
+             data-index="{{ forloop.index0 }}"
+             aria-label="Ir al slide {{ forloop.index }}"
+             style="
+               --dot-color-inactive: {{ section.settings.dots_color_inactive }};
+               --dot-color-active: {{ section.settings.dots_color_active }};
+               --dot-height: {{ section.settings.dots_height }}px;
+             ">
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</div>
+
+<style>
+  .bagatta-carousel {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    height: 100svh;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    overflow: hidden;
+    background: #000;
+  }
+  
+  .bagatta-carousel__track {
+    display: flex;
+    height: 100%;
+    transition: transform 1.2s cubic-bezier(0.86, 0, 0.07, 1);
+  }
+  
+  .bagatta-carousel__slide {
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bagatta-carousel__image-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    transform: scale(1.05);
+    transition: transform 10s ease-out;
+  }
+  
+  .bagatta-carousel__slide--active .bagatta-carousel__image-wrap { transform: scale(1); }
+  
+  .bagatta-carousel__media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .bagatta-carousel__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  
+  .bagatta-carousel__content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: var(--justify, center);
+    align-items: var(--align, center);
+    padding-top: var(--pt, 0px);
+    padding-bottom: var(--pb, 0px);
+    padding-left: 24px;
+    padding-right: 24px;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .bagatta-content-inner {
+    max-width: 800px;
+    width: 100%;
+    text-align: var(--text-align, left);
+    pointer-events: auto;
+  }
+
+  @media screen and (max-width: 767px) {
+    .bagatta-desktop-only { display: none !important; }
+    .bagatta-mobile-only { display: block !important; }
+  }
+  @media screen and (min-width: 768px) {
+    .bagatta-mobile-only { display: none !important; }
+    .bagatta-carousel__content {
+      padding-left: 8%;
+      padding-right: 8%;
+    }
+  }
+
+  /* --- Sistema de Animaciones --- */
+  .bagatta-reveal {
+    opacity: 0;
+    transform: translateY(25px);
+    transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .bagatta-carousel__slide--active .bagatta-reveal { opacity: 1; transform: translateY(0); }
+  
+  .bagatta-carousel__slide--active .bagatta-carousel__overline { transition-delay: 0.4s; }
+  .bagatta-carousel__slide--active .bagatta-carousel__heading { transition-delay: 0.55s; }
+  .bagatta-carousel__slide--active .bagatta-carousel__subtext { transition-delay: 0.7s; }
+  .bagatta-carousel__slide--active .bagatta-reveal--btn { transition-delay: 0.85s; }
+
+  .bagatta-carousel__overline {
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  
+  .bagatta-carousel__heading {
+    margin-bottom: 25px;
+    line-height: 1.05;
+  }
+  
+  .bagatta-carousel__subtext {
+    font-size: clamp(16px, 1.3vw, 19px);
+    margin-bottom: 40px;
+    line-height: 1.6;
+    max-width: 580px;
+  }
+
+  /* subtext auto-centering handled via CSS vars text-align */
+  
+  /* --- BOTÓN PREMIUM --- */
+  /* El backdrop-filter vive en el wrapper, NO en el <a>.
+     Motivo: cuando un ancestro tiene opacity < 1 (durante .bagatta-reveal),
+     el navegador descarta el blur del hijo hasta que opacity llega a 1.
+     Al ponerlo en el mismo elemento que anima la opacidad, el blur
+     se renderiza correctamente durante toda la transición de entrada. */
+  .bagatta-reveal--btn {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: inline-block; /* ajusta el wrapper al tamaño del botón */
+  }
+
+  .bagatta-carousel__btn {
+    display: inline-block;
+    padding: 18px 45px;
+    border: 1px solid;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    position: relative;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.20);
+    transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+    transition-delay: 0s !important;
+  }
+
+  /* --- FLECHAS --- */
+  .bagatta-carousel__arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    z-index: 40;
+    opacity: 0.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+  }
+  @media screen and (max-width: 767px) { .bagatta-carousel__arrow { display: none !important; } }
+  .bagatta-carousel__arrow:hover { opacity: 1; }
+  .bagatta-carousel__arrow--prev { left: 30px; }
+  .bagatta-carousel__arrow--next { right: 30px; }
+
+  /* --- DOTS --- */
+  .bagatta-carousel__dots {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 999;
+    pointer-events: auto;
+    transition: bottom 0.3s ease;
+  }
+
+  .bagatta-carousel__dot {
+    width: 40px;
+    height: var(--dot-height);
+    background: var(--dot-color-inactive);
+    cursor: pointer;
+    transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s ease;
+    position: relative;
+    pointer-events: auto;
+  }
+
+  .bagatta-carousel__dot::after {
+    content: '';
+    position: absolute;
+    inset: -15px -10px;
+    z-index: 2;
+  }
+  
+  .bagatta-carousel__dot--active { 
+    background: var(--dot-color-active) !important; 
+    width: 60px; 
+  }
+</style>
+
+<script>
+function initBagattaCarousel_{{ section.id | replace: '-', '_' }}() {
+  const id = '{{ section.id }}';
+  const carousel = document.getElementById('bagatta-carousel-' + id);
+  const track = document.getElementById('bagatta-track-' + id);
+  if (!carousel || !track) return;
+
+  if (carousel.dataset.initialized === 'true') return;
+  carousel.dataset.initialized = 'true';
+
+  const slides = track.querySelectorAll('.bagatta-carousel__slide');
+  const dots = document.querySelectorAll('#bagatta-dots-' + id + ' .bagatta-carousel__dot');
+  const prevBtn = document.getElementById('bagatta-prev-' + id);
+  const nextBtn = document.getElementById('bagatta-next-' + id);
+  
+  let current = 0;
+  let timer;
+
+  function goTo(n) {
+    if (slides.length === 0) return;
+    slides[current].classList.remove('bagatta-carousel__slide--active');
+    if (dots[current]) dots[current].classList.remove('bagatta-carousel__dot--active');
+    
+    current = (n + slides.length) % slides.length;
+    
+    track.style.transform = `translateX(-${current * 100}%)`;
+    slides[current].classList.add('bagatta-carousel__slide--active');
+    if (dots[current]) dots[current].classList.add('bagatta-carousel__dot--active');
+  }
+
+  function startTimer() { 
+    if ({{ section.settings.autoplay }}) {
+      clearInterval(timer);
+      timer = setInterval(() => goTo(current + 1), {{ section.settings.autoplay_delay | times: 1000 }});
+    }
+  }
+
+  if (slides[0]) slides[0].classList.add('bagatta-carousel__slide--active');
+  startTimer();
+
+  if (prevBtn) prevBtn.addEventListener('click', (e) => { e.preventDefault(); clearInterval(timer); goTo(current - 1); startTimer(); });
+  if (nextBtn) nextBtn.addEventListener('click', (e) => { e.preventDefault(); clearInterval(timer); goTo(current + 1); startTimer(); });
+  
+  dots.forEach(dot => {
+    dot.addEventListener('click', function(e) { 
+      e.preventDefault();
+      e.stopPropagation();
+      clearInterval(timer); 
+      const index = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+      goTo(index); 
+      startTimer(); 
+    });
+  });
+
+  let touchStartX = 0;
+  carousel.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+  carousel.addEventListener('touchend', e => {
+    const touchEndX = e.changedTouches[0].screenX;
+    if (touchStartX - touchEndX > 60) { clearInterval(timer); goTo(current + 1); startTimer(); }
+    if (touchEndX - touchStartX > 60) { clearInterval(timer); goTo(current - 1); startTimer(); }
+  }, {passive: true});
+}
+
+document.addEventListener('DOMContentLoaded', initBagattaCarousel_{{ section.id | replace: '-', '_' }});
+
+document.addEventListener('shopify:section:load', function(event) {
+  if (event.detail.sectionId === '{{ section.id }}') {
+    initBagattaCarousel_{{ section.id | replace: '-', '_' }}();
+  }
+});
+</script>
+
+{% schema %}
+{
+  "name": "Bagatta — Master Slider",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Autoplay" },
+    { "type": "checkbox", "id": "autoplay", "label": "Reproducción automática", "default": true },
+    { "type": "range", "id": "autoplay_delay", "label": "Segundos entre slides", "min": 3, "max": 12, "step": 1, "default": 5 },
+    { "type": "header", "content": "Dimensiones del Título" },
+    {
+      "type": "range",
+      "id": "heading_size_desktop",
+      "label": "Tamaño del Título (Escritorio)",
+      "min": 30, "max": 120, "step": 2, "unit": "px",
+      "default": 76
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Tamaño del Título (Móvil)",
+      "min": 24, "max": 80, "step": 1, "unit": "px",
+      "default": 38
+    },
+    { "type": "header", "content": "Apariencia General" },
+    { "type": "color", "id": "overlay_color", "label": "Color Overlay", "default": "#000000" },
+    { "type": "range", "id": "overlay_opacity", "label": "Opacidad Overlay", "min": 0, "max": 0.9, "step": 0.1, "default": 0.4 },
+    { "type": "header", "content": "Personalización de Dots (Indicadores)" },
+    { "type": "color", "id": "dots_color_active", "label": "Color Dot Activo", "default": "#a49582" },
+    { "type": "color", "id": "dots_color_inactive", "label": "Color Dots Inactivos", "default": "rgba(255, 255, 255, 0.4)" },
+    { "type": "range", "id": "dots_height", "label": "Grosor / Alto de los Dots (px)", "min": 2, "max": 8, "step": 1, "default": 3 },
+    { "type": "range", "id": "dots_margin_bottom", "label": "Separación Inferior (px)", "min": 20, "max": 100, "step": 5, "default": 45 }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        { "type": "header", "content": "Posición — Escritorio" },
+        {
+          "type": "select",
+          "id": "content_h_align",
+          "label": "Horizontal (Escritorio)",
+          "default": "left",
+          "options": [
+            { "value": "left",   "label": "← Izquierda" },
+            { "value": "center", "label": "↔ Centro" },
+            { "value": "right",  "label": "→ Derecha" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "content_v_align",
+          "label": "Vertical (Escritorio)",
+          "default": "middle",
+          "options": [
+            { "value": "top",    "label": "↑ Arriba" },
+            { "value": "middle", "label": "↕ Medio" },
+            { "value": "bottom", "label": "↓ Abajo" }
+          ]
+        },
+        {
+          "type": "range",
+          "id": "content_v_offset",
+          "label": "Margen vertical Escritorio (px)",
+          "info": "Solo aplica cuando Vertical es Arriba o Abajo",
+          "min": 0,
+          "max": 200,
+          "step": 5,
+          "default": 60
+        },
+        { "type": "header", "content": "Posición — Móvil" },
+        {
+          "type": "select",
+          "id": "content_h_align_mobile",
+          "label": "Horizontal (Móvil)",
+          "default": "center",
+          "options": [
+            { "value": "left",   "label": "← Izquierda" },
+            { "value": "center", "label": "↔ Centro" },
+            { "value": "right",  "label": "→ Derecha" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "content_v_align_mobile",
+          "label": "Vertical (Móvil)",
+          "default": "middle",
+          "options": [
+            { "value": "top",    "label": "↑ Arriba" },
+            { "value": "middle", "label": "↕ Medio" },
+            { "value": "bottom", "label": "↓ Abajo" }
+          ]
+        },
+        {
+          "type": "range",
+          "id": "content_v_offset_mobile",
+          "label": "Margen vertical Móvil (px)",
+          "info": "Solo aplica cuando Vertical es Arriba o Abajo",
+          "min": 0,
+          "max": 200,
+          "step": 5,
+          "default": 60
+        },
+        { "type": "header", "content": "Multimedia" },
+        { "type": "video", "id": "video", "label": "Video Escritorio" },
+        { "type": "image_picker", "id": "image", "label": "Imagen Escritorio" },
+        { "type": "video", "id": "video_mobile", "label": "Video Móvil" },
+        { "type": "image_picker", "id": "image_mobile", "label": "Imagen Móvil" },
+        { "type": "header", "content": "Textos y Colores" },
+        { "type": "text", "id": "overline", "label": "Sobre-título", "default": "Nueva Colección" },
+        { "type": "color", "id": "color_overline", "label": "Color Sobre-título", "default": "#a49582" },
+        { "type": "text", "id": "heading", "label": "Título", "default": "LUJO TOTAL" },
+        { "type": "color", "id": "color_heading", "label": "Color Título", "default": "#FFFFFF" },
+        { "type": "textarea", "id": "subtext", "label": "Descripción", "default": "Diseño exclusivo." },
+        { "type": "color", "id": "color_subtext", "label": "Color Descripción", "default": "#F2F2F2" },
+        { "type": "header", "content": "Botón" },
+        { "type": "text", "id": "button_label", "label": "Texto Botón", "default": "Comprar" },
+        { "type": "url", "id": "button_link", "label": "Enlace" },
+        { "type": "color", "id": "color_btn_text", "label": "Texto Botón", "default": "#FFFFFF" },
+        { "type": "color", "id": "color_btn_border", "label": "Borde Botón", "default": "#a49582" },
+        { "type": "color", "id": "color_btn_hover_bg", "label": "Fondo Hover", "default": "#a49582" },
+        { "type": "color", "id": "color_btn_hover_text", "label": "Texto Hover", "default": "#000000" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Bagatta — Master Full Slider" }]
+}
+{% endschema %}
