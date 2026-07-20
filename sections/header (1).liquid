@@ -1,4 +1,3 @@
-{%- comment -%} the next stept is not to hardcode the header {%- endcomment -%}
 {% liquid
   assign order = 'logo,menu,localization,search,drawer_search,actions'
 
@@ -168,6 +167,10 @@
     assign class = class | append: ' ' | append: collapse_header_paddings_class
   endif
 
+  if section.settings.enable_glass_effect
+    assign class = class | append: ' header--glass'
+  endif
+
   # Determine transparent background value
   assign top_transparent = false
   assign bottom_transparent = false
@@ -295,6 +298,11 @@
   }
 </script>
 
+{% if section.settings.enable_glass_effect %}
+  {% assign glass_opacity_decimal = section.settings.glass_opacity | divided_by: 100.0 %}
+  {% assign glass_bg_rgba = section.settings.glass_background_color | color_modify: 'alpha', glass_opacity_decimal %}
+{% endif %}
+
 <header-component
   id="header-component"
   class="{{ class }}"
@@ -321,6 +329,11 @@
       --header-actions-font-family: var(--font-{{ section.settings.actions_font | default: 'heading' }}--family);
       --header-actions-font-weight: var(--font-{{ section.settings.actions_font | default: 'heading' }}--weight);
       --header-actions-text-case: {{ section.settings.actions_text_case | default: 'none' }};
+    {% endif %}
+    {% if section.settings.enable_glass_effect %}
+      --glass-bg: {{ glass_bg_rgba }};
+      --glass-blur: blur({{ section.settings.glass_blur }}px);
+      --glass-solid-color: {{ section.settings.glass_solid_color }};
     {% endif %}
   "
 >
@@ -420,7 +433,7 @@
     --header-content-transition-timing: 0s;
 
     display: block;
-    contain: layout style;
+    /*contain: layout style;*/
     background: transparent;
     a,
     .button,
@@ -1099,108 +1112,127 @@
     font-size: var(--menu-localization-font-size);
   }
 
-  /*=====================================================
-=     GLASS HEADER STYLE V3 (OPTIMIZADO)              =
-======================================================*/
 
-/* 0. Contenedor: stacking context propio para aislar recálculos */
-#header-component {
-    position: relative;
-    isolation: isolate;
-    background-color: transparent !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+/* =====================================================
+   GLASS HEADER DEFINITIVO
+   ===================================================== */
+
+/* Contenedor principal */
+#header-component.header--glass {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 999;
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  overflow: visible;
 }
 
-/* 0.1 Capa de vidrio: blur CONSTANTE, jamás se anima el radio */
-#header-component::before {
+/* Capa de vidrio */
+#header-component.header--glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  background: var(--glass-bg, rgba(40,40,40,0.18));
+  backdrop-filter: var(--glass-blur, blur(24px));
+  -webkit-backdrop-filter: var(--glass-blur, blur(24px));
+}
+/* 0.2 Capa de barrido blanco o color sólido al interactuar */
+#header-component.header--glass::after {
     content: "";
     position: absolute;
     inset: 0;
-    z-index: -1;
+    z-index: 0; /* Mismo nivel que el blur */
     pointer-events: none;
-    background-color: rgba(40, 40, 40, 0.18);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    opacity: 1;
-    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: opacity;
-}
 
-/* 0.2 Capa de barrido blanco: opaca y sin blur, solo cross-fade de opacity */
-#header-component::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-color: #ffffff;
+    background-color: var(--glass-solid-color, #ffffff);
     opacity: 0;
-    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: opacity;
+    transition: opacity 0.3s ease;
+}
+/* Cuando se interactúa, ocultar el blur y mostrar la capa sólida */
+#header-component.header--glass:hover::before,
+#header-component.header--glass:focus-within::before,
+#header-component.header--glass:has(details[open])::before,
+#header-component.header--glass:has(.menu-list__link:is(:hover, [aria-expanded='true']))::before {
+    opacity: 0;
 }
 
-/* 2. OCULTAR FONDOS NATIVOS (igual que antes) */
-#header-component .header__underlay,
-#header-component .header__underlay-closed,
-#header-component .header__underlay-open {
-    background: transparent !important;
-    background-image: none !important;
-    box-shadow: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: none !important;
+#header-component.header--glass:hover::after,
+#header-component.header--glass:focus-within::after,
+#header-component.header--glass:has(details[open])::after,
+#header-component.header--glass:has(.menu-list__link:is(:hover, [aria-expanded='true']))::after {
+    opacity: 1;
 }
 
-/* 3. ESTADO SCROLL (Sticky) — sin cambios */
-#header-component.header-fixed {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 999;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* 4. BARRIDO BLANCO ABSOLUTO (Hover o Menú Abierto) — mismos triggers */
-#header-component:hover,
-#header-component:focus-within,
-#header-component:has(details[open]),
-#header-component:has(.menu-list__link:is(:hover, [aria-expanded='true'])) {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
-    border-bottom-color: transparent !important;
-
+/* Cambiar colores del contenido a negro sobre fondo blanco */
+#header-component.header--glass:hover,
+#header-component.header--glass:focus-within,
+#header-component.header--glass:has(details[open]),
+#header-component.header--glass:has(.menu-list__link:is(:hover, [aria-expanded='true'])) {
     --color-foreground: 0, 0, 0 !important;
     --color-foreground-rgb: 0, 0, 0 !important;
     --header-logo-display: unset !important;
     --header-logo-inverse-display: unset !important;
 }
 
-/* La capa de vidrio se apaga... (solo opacity, GPU) */
-#header-component:hover::before,
-#header-component:focus-within::before,
-#header-component:has(details[open])::before,
-#header-component:has(.menu-list__link:is(:hover, [aria-expanded='true']))::before {
+/* Contenido por encima del blur */
+#header-component.header--glass .header__row,
+#header-component.header--glass .header__columns {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+
+/* Ocultar solo los underlays cerrados */
+#header-component.header--glass .header__underlay,
+#header-component.header--glass .header__underlay-closed {
+  display: none !important;
+}
+
+/* Restaurar el fondo blanco del mega menú cuando está abierto */
+#header-component.header--glass .header__underlay-open {
+  display: block !important;
+  opacity: 1 !important;
+  background: linear-gradient(
+    var(--color-scheme-top-row) 0 var(--top-row-height),
+    var(--glass-solid-color, #ffffff) var(--top-row-height) 100%
+  ) !important;
+  box-shadow: var(--shadow-popover) !important;
+}
+
+/* Forzar transparencia en cualquier estado */
+#header-component.header--glass[transparent],
+#header-component.header--glass[data-sticky-state="active"],
+#header-component.header--glass.header-fixed {
+  background: transparent !important;
+}
+
+#header-component.header--glass[transparent] .header__row,
+#header-component.header--glass[data-sticky-state="active"] .header__row,
+#header-component.header--glass.header-fixed .header__row {
+  background: transparent !important;
+}
+
+
+/* Corrección definitiva: mantener el blur cuando el header entra en sticky */
+#header-component.header-fixed.header--glass::before {
+    opacity: 1 !important;
+    background-color: var(--glass-bg, rgba(40, 40, 40, 0.18)) !important;
+    backdrop-filter: var(--glass-blur, blur(24px)) !important;
+    -webkit-backdrop-filter: var(--glass-blur, blur(24px)) !important;
+}
+
+#header-component.header-fixed.header--glass::after {
     opacity: 0;
 }
 
-/* ...y la capa blanca aparece (solo opacity, GPU) */
-#header-component:hover::after,
-#header-component:focus-within::after,
-#header-component:has(details[open])::after,
-#header-component:has(.menu-list__link:is(:hover, [aria-expanded='true']))::after {
-    opacity: 1;
-}
-
-/* 5. MEGA MENÚ Y SUBMENÚS (Blanco mate continuo) — sin cambios */
-#header-component :is(.menu-list__submenu, .header__dropdown, .mega-menu, .localization-wrapper) {
-    background-color: #ffffff !important;
-    opacity: 1 !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    box-shadow: none !important;
-}
 {% endstylesheet %}
 
 {% unless request.design_mode %}
@@ -1213,44 +1245,50 @@
 {% endunless %}
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const headerComponent = document.getElementById('header-component');
-    const headerSection = document.querySelector('.header-section');
-    
-    if (!headerComponent || !headerSection) return;
-
-    // Crear un spacer (placeholder) para evitar el salto de la página
-    const spacer = document.createElement('div');
-    spacer.classList.add('header-spacer');
-    spacer.style.display = 'none';
-    
-    // Insertar el spacer justo antes del header-section
-    headerSection.parentNode.insertBefore(spacer, headerSection);
-
-    // Listener optimizado para el scroll
-    const handleScroll = () => {
-      const scrollY = window.scrollY || window.pageYOffset;
+  (function() {
+    const initHeaderScroll = () => {
+      const headerComponent = document.getElementById('header-component');
+      const headerSection = document.querySelector('.header-section');
       
-      if (scrollY > 40) {
-        if (!headerComponent.classList.contains('header-fixed')) {
-          // Asignar al spacer la altura exacta del header antes de flotarlo
-          spacer.style.height = headerComponent.offsetHeight + 'px';
-          spacer.style.display = 'block';
-          headerComponent.classList.add('header-fixed');
-        }
-      } else {
-        if (headerComponent.classList.contains('header-fixed')) {
-          spacer.style.display = 'none';
-          headerComponent.classList.remove('header-fixed');
-        }
+      if (!headerComponent || !headerSection) return;
+
+      let spacer = headerSection.parentNode.querySelector('.header-spacer');
+      if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.classList.add('header-spacer');
+        spacer.style.display = 'none';
+        headerSection.parentNode.insertBefore(spacer, headerSection);
       }
+
+      const handleScroll = () => {
+        const scrollY = window.scrollY || window.pageYOffset;
+        
+        if (scrollY > 40) {
+          if (!headerComponent.classList.contains('header-fixed')) {
+            spacer.style.height = headerComponent.offsetHeight + 'px';
+            spacer.style.display = 'block';
+            headerComponent.classList.add('header-fixed');
+          }
+        } else {
+          if (headerComponent.classList.contains('header-fixed')) {
+            spacer.style.display = 'none';
+            headerComponent.classList.remove('header-fixed');
+          }
+        }
+      };
+
+      // Ejecutar inmediatamente al cargar el script para evitar retrasos iniciales
+      handleScroll();
+      
+      window.addEventListener('scroll', handleScroll, { passive: true });
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Ejecutar una vez al cargar por si el usuario recarga a mitad de página
-    handleScroll();
-  });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHeaderScroll);
+    } else {
+      initHeaderScroll();
+    }
+  })();
 </script>
 
 {% schema %}
@@ -1696,6 +1734,49 @@
       "label": "t:settings.inverse",
       "default": "primary",
       "visible_if": "{{ section.settings.enable_transparent_header_home or section.settings.enable_transparent_header_product or section.settings.enable_transparent_header_collection }}"
+    },
+    {
+      "type": "header",
+      "content": "Efecto Cristal (Glass Header)"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_glass_effect",
+      "label": "Activar efecto cristal",
+      "info": "Reemplaza el comportamiento de fondo con un efecto esmerilado personalizable.",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "glass_background_color",
+      "label": "Color de fondo del cristal",
+      "default": "#282828"
+    },
+    {
+      "type": "range",
+      "id": "glass_opacity",
+      "label": "Opacidad del fondo",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "glass_blur",
+      "label": "Nivel de desenfoque (Blur)",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "glass_solid_color",
+      "label": "Color sólido (al interactuar)",
+      "default": "#ffffff"
     },
     {
       "type": "header",
