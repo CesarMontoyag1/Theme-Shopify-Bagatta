@@ -178,30 +178,32 @@
       {%- endfor -%}
     </div>
 
-    {%- comment -%} UI: FLECHAS DE NAVEGACIÓN {%- endcomment -%}
-    <button class="bagatta-carousel__arrow bagatta-carousel__arrow--prev" id="bagatta-prev-{{ section.id }}" aria-label="Slide anterior">
-      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-    </button>
-    <button class="bagatta-carousel__arrow bagatta-carousel__arrow--next" id="bagatta-next-{{ section.id }}" aria-label="Siguiente slide">
-      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-    </button>
-
-    {%- comment -%} UI: DOTS INDICADORES DINÁMICOS {%- endcomment -%}
-    <div class="bagatta-carousel__dots" 
-         id="bagatta-dots-{{ section.id }}" 
-         style="bottom: {{ section.settings.dots_margin_bottom }}px;">
-      {%- for block in section.blocks -%}
-        <div class="bagatta-carousel__dot {% if forloop.first %}bagatta-carousel__dot--active{% endif %}" 
-             data-index="{{ forloop.index0 }}"
-             aria-label="Ir al slide {{ forloop.index }}"
-             style="
-               --dot-color-inactive: {{ section.settings.dots_color_inactive }};
-               --dot-color-active: {{ section.settings.dots_color_active }};
-               --dot-height: {{ section.settings.dots_height }}px;
-             ">
-        </div>
-      {%- endfor -%}
-    </div>
+    {%- if section.blocks.size > 1 -%}
+      {%- comment -%} UI: FLECHAS DE NAVEGACIÓN {%- endcomment -%}
+      <button class="bagatta-carousel__arrow bagatta-carousel__arrow--prev" id="bagatta-prev-{{ section.id }}" aria-label="Slide anterior">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <button class="bagatta-carousel__arrow bagatta-carousel__arrow--next" id="bagatta-next-{{ section.id }}" aria-label="Siguiente slide">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </button>
+  
+      {%- comment -%} UI: DOTS INDICADORES DINÁMICOS {%- endcomment -%}
+      <div class="bagatta-carousel__dots" 
+           id="bagatta-dots-{{ section.id }}" 
+           style="bottom: {{ section.settings.dots_margin_bottom }}px;">
+        {%- for block in section.blocks -%}
+          <div class="bagatta-carousel__dot {% if forloop.first %}bagatta-carousel__dot--active{% endif %}" 
+               data-index="{{ forloop.index0 }}"
+               aria-label="Ir al slide {{ forloop.index }}"
+               style="
+                 --dot-color-inactive: {{ section.settings.dots_color_inactive }};
+                 --dot-color-active: {{ section.settings.dots_color_active }};
+                 --dot-height: {{ section.settings.dots_height }}px;
+               ">
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
   {%- endif -%}
 </div>
 
@@ -364,7 +366,7 @@
     width: 60px;
     height: 60px;
     cursor: pointer;
-    z-index: 40;
+    z-index: 2;
     opacity: 0.4;
     display: flex;
     align-items: center;
@@ -383,7 +385,7 @@
     transform: translateX(-50%);
     display: flex;
     gap: 15px;
-    z-index: 999;
+    z-index: 2;
     pointer-events: auto;
     transition: bottom 0.3s ease;
   }
@@ -422,6 +424,13 @@ function initBagattaCarousel_{{ section.id | replace: '-', '_' }}() {
   carousel.dataset.initialized = 'true';
 
   const slides = track.querySelectorAll('.bagatta-carousel__slide');
+  
+  // Inicializamos el primer slide como activo siempre
+  if (slides[0]) slides[0].classList.add('bagatta-carousel__slide--active');
+
+  // Si hay 1 solo slide (o ninguno), detenemos la ejecución aquí
+  if (slides.length <= 1) return;
+
   const dots = document.querySelectorAll('#bagatta-dots-' + id + ' .bagatta-carousel__dot');
   const prevBtn = document.getElementById('bagatta-prev-' + id);
   const nextBtn = document.getElementById('bagatta-next-' + id);
@@ -448,7 +457,6 @@ function initBagattaCarousel_{{ section.id | replace: '-', '_' }}() {
     }
   }
 
-  if (slides[0]) slides[0].classList.add('bagatta-carousel__slide--active');
   startTimer();
 
   if (prevBtn) prevBtn.addEventListener('click', (e) => { e.preventDefault(); clearInterval(timer); goTo(current - 1); startTimer(); });
